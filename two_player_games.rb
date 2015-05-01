@@ -1,32 +1,29 @@
+require './players'
 require 'colorize'
 
-@players = [
-  player_one = {
-  	name: "player one",
-  	score: 0,
-  	lives: 3,
-    wins: 0,
-  },
-  player_two = {
-	  name: "player two",
-	  score: 0,
-	  lives: 3,
-    wins: 0,
-  },
-]
-def get_names_from_user
-	@players.each do |player|
-		puts "#{player[:name]}, what's your name sunny?"
-		player[:name] = gets.chomp
-	end
+
+
+def get_players
+
+  loop do
+    puts "What's your name sunny?"
+    player_name = gets.chomp
+    @players << Player.new(name: player_name)
+    if @players.length > 1
+      puts "Type yes to add another player"
+      additional_player = gets.chomp
+      break if additional_player != 'yes' 
+    end
+  end
 end
 
+
 def create_problem
-	num1 = Random.rand(21)
-	num2 = Random.rand(21)
+  num1 = Random.rand(21)
+  num2 = Random.rand(21)
   type_randomizer = Random.rand(3)
   if type_randomizer == 0
-	  ["What does #{num1} plus #{num2} equal?".blue, num1 + num2]
+    ["What does #{num1} plus #{num2} equal?".blue, num1 + num2]
   elsif type_randomizer == 1
     ["What does #{num1} minus #{num2} equal?".blue, num1 - num2]
   else
@@ -35,21 +32,21 @@ def create_problem
 end
 
 def get_answer
-	gets.chomp.to_i
+  gets.chomp.to_i
 end
 
 def check_answer?(answer, response)
-	answer == response
+  answer == response
 end
 
 def play_again_prompt
-  @players.each { |player| puts "#{player[:name]} has won #{player[:wins]} games" }
+  @players.each { |player| puts "#{player.name} has won #{player.wins} games" }
   puts "Would you like to play again? (y or n)"
   gets.chomp
 end
 
 def reset_lives
-  @players.each { |player| player[:lives] = 3 }
+  @players.each { |player| player.gain_lives(3) }
 end
   
 def play_again?
@@ -67,33 +64,33 @@ def play_again?
 end
 
 def play_game
-  get_names_from_user
+  get_players
+  
   loop do
-    while(@players[0][:lives] > 0 && @players[1][:lives] > 0)
+    players_alive = @players.length
+    while players_alive > 1
       @players.each do |player| 
-      	problem = create_problem
-      	puts "#{player[:name]} " + problem[0]
-        if check_answer?(problem[1], get_answer) 
-          player[:score] += 1 
-          puts "Correct ! #{player[:name]}, you now have #{player[:score]} points".green
-        else
-          player[:lives] -= 1
-          puts "Incorrect response #{player[:name]}, you're down to #{player[:lives]} lives".red
+        if player.lives > 0
+          problem = create_problem
+          puts "#{player.name} " + problem[0]
+          if check_answer?(problem[1], get_answer) 
+            player.give_point
+            puts "Correct ! #{player.name}, you now have #{player.score} points".green
+          else
+            player.lose_life
+            puts "Incorrect response #{player.name}, you're down to #{player.lives} lives".red
+          end
+          if player.lives == 0
+            puts "#{player.name} you are are out of lives and finished with #{player.score} points"
+            players_alive -= 1
+          end
         end
       end
     end
-    if @players[0][:lives]  == 0
-      @players[1][:wins] += 1
-     puts "game over, #{@players[1][:name]} wins with #{@players[1][:score]} points!"
-    else
-      @players[0][:wins] += 1
-      puts "game over, #{@players[0][:name]} wins with #{@players[0][:score]} points!"
-    end
+    @players.each { |player| player.win if player.lives > 0 }
     break if !play_again?
   end
 end
-
-play_game
 
 
 
