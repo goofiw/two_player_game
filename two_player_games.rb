@@ -1,7 +1,8 @@
 require './players'
 require 'colorize'
 
-
+class InvalidInput < StandardError
+end
 
 def get_players
 
@@ -10,9 +11,8 @@ def get_players
     player_name = gets.chomp
     @players << Player.new(name: player_name)
     if @players.length > 1
-      puts "Type yes to add another player"
-      additional_player = gets.chomp
-      break if additional_player != 'yes' 
+      puts "Type y to add another player"
+      break if gets.chomp != 'y'
     end
   end
 end
@@ -42,7 +42,8 @@ end
 def play_again_prompt
   @players.each { |player| puts "#{player.name} has won #{player.wins} games" }
   puts "Would you like to play again? (y or n)"
-  gets.chomp
+  res = gets.chomp
+  raise InvalidInput, "Input either y of n" if res != 'y' && res != 'n'
 end
 
 def reset_lives
@@ -64,6 +65,7 @@ def play_again?
 end
 
 def play_game
+  @players = []
   get_players
   
   loop do
@@ -93,7 +95,7 @@ def play_game
 end
 
 
-
+play_game
 
 
   
